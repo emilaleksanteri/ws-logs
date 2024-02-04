@@ -36,12 +36,14 @@ function LogsListener(props: { ws: WebSocket }) {
 function Logs(props: { logs: Log[] }) {
   const { logs } = props
   return (
-    <ul className="bg-white p-4 w-[60%] flex flex-col gap-2 h-[400px] overflow-y-scroll">
+    <ul className="bg-white p-4 w-[60%] flex flex-col gap-2 h-[400px] overflow-y-scroll rounded-md">
       {logs.map((log, i) => (
-        <li className="flex gap-4 items-center justify-between font-medium" key={i}>
+        <li className="flex gap-4 items-center justify-between font-medium pb-2 border-b-2" key={i}>
           <p>{log.domain}</p>
           <p>{log.accessed_at}</p>
-          <p className="capitalize">{log.is_my_domain ? "success" : "wrong domain"}</p>
+          <p className={`capitalize ${log.is_my_domain ? "text-green-400" : "text-rose-500"}`}>
+            {log.is_my_domain ? "success" : "wrong domain"}
+          </p>
         </li>
       ))}
     </ul>
@@ -63,6 +65,7 @@ function App() {
           {
             showLogs
               ? <div className="py-6">
+                <p className="font-thin italic pb-4">Listening for site entries...</p>
                 <LogsConnect />
               </div>
               : null
