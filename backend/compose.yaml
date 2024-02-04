@@ -1,0 +1,20 @@
+services:
+  server:
+    build:
+      context: .
+    networks: 
+      - mynet
+    depends_on:
+      - redis
+    ports: 
+      - "8080:8080"
+
+  redis:
+    networks:
+      - mynet
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+networks:
+  mynet:
+    driver: bridge
