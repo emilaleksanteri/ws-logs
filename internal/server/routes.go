@@ -2,6 +2,9 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -29,19 +32,36 @@ func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+type LogEvent struct {
+	Domain     string    `json:"domain"`
+	AccessedAt time.Time `json:"sent_at"`
+	IsMyDomain bool      `json:"is_my_domain"`
+}
+
 func (s *FiberServer) logHandler(c *fiber.Ctx) error {
 	channel := c.Params("channel")
 
 	var input struct {
-		Log string `json:"log"`
+		Domain string `json:"domain"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
 		return err
 	}
 
-	call := s.Redis.Publish(c.Context(), channel, input.Log)
-	_, err := call.Result()
+	event := LogEvent{
+		Domain:     input.Domain,
+		AccessedAt: time.Now(),
+		IsMyDomain: input.Domain == "mydomain.com",
+	}
+
+	json, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	call := s.Redis.Publish(c.Context(), channel, json)
+	_, err = call.Result()
 	if err != nil {
 		return err
 	}
@@ -59,8 +79,13 @@ func (s *FiberServer) eventSocketHandler(c *websocket.Conn) {
 
 	ch := sub.Channel()
 	for msg := range ch {
-		c.WriteJSON(fiber.Map{
-			"message": msg.Payload,
-		})
+		var event LogEvent
+		err := json.Unmarshal([]byte(msg.Payload), &event)
+		if err != nil {
+			fmt.Println("Error parsing message", err)
+			continue
+		}
+
+		c.WriteJSON(event)
 	}
 }
