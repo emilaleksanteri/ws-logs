@@ -45,7 +45,8 @@ watch:
 	    fi; \
 	fi
 
-compose-up:
-	@docker-compose up -d
+## run-docker: Run the application in a Docker container
+run-docker:
+	@docker-compose up --build -d
 
 .PHONY: all build run test clean

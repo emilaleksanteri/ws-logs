@@ -4,5 +4,5 @@
 ```cd frontend && pnpm i && pnpm dev```
 
 ## for backend
-```cd backend && docker-compose up```
+```cd backend && make run-docker```
 
